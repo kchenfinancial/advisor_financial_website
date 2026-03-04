@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Videos & Resources</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-container">
+        <div class="logo">
+          <span class="logo-mark">KC</span>
+          <span class="logo-text">Financial Planning</span>
+        </div>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="nav">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="bio.html" class="nav-link">About</a>
+          <a href="resources.html" class="nav-link active">Videos & Resources</a>
+          <a href="calculators.html" class="nav-link">Calculators</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <header class="section-header">
+            <h1>Videos & Educational Resources</h1>
+            <p>
+              Share short videos, concept explainers, and downloadable resources so clients
+              can learn at their own pace between meetings.
+            </p>
+          </header>
+
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" data-view="carousel">Carousel view</button>
+            <button class="view-toggle-btn" data-view="gallery">Gallery view</button>
+          </div>
+
+          <div class="carousel" id="videoCarousel" aria-label="Featured videos">
+            <button class="carousel-arrow left" data-direction="prev" aria-label="Previous">
+              &#10094;
+            </button>
+            <div class="carousel-track" id="videoCarouselTrack">
+              <!-- Slides will be populated by JavaScript -->
+            </div>
+            <button class="carousel-arrow right" data-direction="next" aria-label="Next">
+              &#10095;
+            </button>
+            <div class="carousel-dots" id="videoCarouselDots" aria-hidden="true"></div>
+
+          </div>
+
+          <div class="gallery" id="videoGallery" hidden>
+            <div class="gallery-grid" id="videoGalleryGrid"></div>
+            <div class="gallery-pagination" id="videoGalleryPagination"></div>
+          </div>
+
+          <!-- <section class="section-sm">
+            <h2>Resource library</h2>
+            <p>
+              Link out to PDFs, checklists, or external articles you like to share with
+              clients. You can edit this list directly in the HTML.
+            </p>
+            <ul class="resource-list">
+              <li>
+                <span class="resource-title">Sample Budgeting Worksheet (PDF)</span>
+                <a href="#" target="_blank" rel="noopener" class="resource-link">Download</a>
+              </li>
+              <li>
+                <span class="resource-title">Understanding the Power of Compound Interest</span>
+                <a href="#" target="_blank" rel="noopener" class="resource-link">Watch video</a>
+              </li>
+              <li>
+                <span class="resource-title">Preparing for Your First Strategy Session</span>
+                <a href="#" target="_blank" rel="noopener" class="resource-link">View checklist</a>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </section> -->
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <p class="footer-brand">
+          &copy; <span id="year"></span> Kevin Chen
+        </p>
+        <p class="footer-small">
+          This website is for educational purposes only and does not constitute financial, legal, or tax advice. All strategies and concepts should be reviewed with a licensed professional and your own tax/legal advisors.
+        </p>
+      </div>
+    </footer>
+
+    <script src="assets/site.js"></script>
+    <script src="assets/resources.js"></script>
+  </body>
+</html>
+

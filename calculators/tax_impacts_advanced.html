@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WFG Comprehensive Tax & Product Cost Efficiency Analysis (Pro Max)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #8e44ad; 
+            --taxable-color: #c0392b;
+            --deferred-color: #d35400;
+            --annuity-color: #2980b9;
+            --roth-color: #27ae60;
+            --iul-color: #16a085;
+            --ideal-color: #f1c40f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 20px; background-color: #f4f7f6; color: #333;
+        }
+
+        .container {
+            max-width: 1500px; margin: 0 auto; background: white;
+            padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 { text-align: center; color: var(--primary-color); margin-bottom: 5px; }
+        
+        .subtitle {
+            text-align: center; color: #7f8c8d; margin-bottom: 30px;
+            font-size: 0.95em; line-height: 1.6;
+        }
+
+        .grid-layout {
+            display: grid; grid-template-columns: 300px 1fr; gap: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .input-section {
+            background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e9ecef;
+        }
+
+        .input-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85em; }
+        input {
+            width: 100%; padding: 8px; border: 1px solid #ccd1d1;
+            border-radius: 6px; box-sizing: border-box; font-size: 14px;
+        }
+
+        .input-iul-cost { border-color: var(--iul-color); background-color: #e8f6f3; font-weight: bold; color: var(--iul-color); }
+
+        button {
+            width: 100%; padding: 12px; background-color: var(--accent-color);
+            color: white; border: none; border-radius: 6px; cursor: pointer;
+            font-size: 16px; font-weight: bold; margin-top: 10px; transition: 0.3s;
+        }
+        button:hover { background-color: #732d91; }
+
+        .summary-cards {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 20px;
+        }
+
+        .card {
+            padding: 12px 4px; border-radius: 8px; color: white; text-align: center;
+        }
+        .card h3 { margin: 0 0 4px 0; font-size: 0.75em; opacity: 0.9; }
+        .card .product-name { font-weight: bold; font-size: 0.75em; margin-bottom: 4px; display: block; color: #fff; background: rgba(0,0,0,0.2); padding: 4px 2px; border-radius: 4px; line-height: 1.2; min-height: 28px; display: flex; align-items: center; justify-content: center;}
+        .card .tax-info { font-size: 0.6em; margin-bottom: 6px; height: 28px; line-height: 1.2; opacity: 0.9; }
+        .card .value { font-size: 1em; font-weight: bold; }
+        
+        .bg-taxable { background: var(--taxable-color); }
+        .bg-deferred { background: var(--deferred-color); }
+        .bg-annuity { background: var(--annuity-color); }
+        .bg-roth { background: var(--roth-color); }
+        .bg-iul { background: var(--iul-color); }
+        .bg-ideal { background: var(--ideal-color); color: #333; }
+        .bg-ideal .product-name { color: #fff; background: rgba(0,0,0,0.4); }
+
+        .chart-controls {
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;
+            padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee;
+        }
+        .control-item {
+            display: flex; align-items: center; font-size: 0.85em; font-weight: bold; cursor: pointer;
+            user-select: none;
+        }
+        .control-item input { width: auto; margin-right: 5px; cursor: pointer; }
+        .control-item span { padding: 3px 8px; border-radius: 4px; color: white; opacity: 0.7; transition: 0.2s; font-size: 0.9em;}
+        .control-item input:checked + span { opacity: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.02); }
+
+        .chart-container { position: relative; height: 450px; width: 100%; margin-bottom: 20px; }
+
+        .table-wrapper { overflow-x: auto; max-height: 350px; border: 1px solid #eee; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8em; }
+        th, td { padding: 8px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background-color: #f2f4f4; color: var(--primary-color); position: sticky; top: 0; z-index: 10; text-align: center;}
+        td:first-child { text-align: center; font-weight: bold; }
+        .highlight-col { background-color: #fef9e7; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>WFG Comprehensive Tax & Product Efficiency Analysis</h1>
+    <div class="subtitle">
+        Visual Performance Comparison: Check options below to control the chart. Hover to view efficiency percentages (%) for each product.
+    </div>
+
+    <div class="grid-layout">
+        <div class="input-section">
+            <div class="input-group">
+                <label>Initial Investment (Pre-tax $)</label>
+                <input type="number" id="initialInput" value="100000">
+            </div>
+            <div class="input-group">
+                <label>Expected Rate of Return (%)</label>
+                <input type="number" id="rateOfReturn" value="7">
+            </div>
+            <div class="input-group">
+                <label style="color:var(--taxable-color);">Current Tax Rate (%)</label>
+                <input type="number" id="currentTax" value="30">
+            </div>
+            <div class="input-group">
+                <label style="color:var(--deferred-color);">Estimated Retirement Tax Rate (%)</label>
+                <input type="number" id="futureTax" value="35">
+            </div>
+            <div class="input-group">
+                <label>Investment Horizon (Years)</label>
+                <input type="number" id="years" value="30">
+            </div>
+            
+            <hr style="border:0; border-top:1px solid #ddd; margin: 15px 0;">
+            
+            <div class="input-group">
+                <label style="color:var(--iul-color);">IUL/VUL Upfront Cost Load (%)</label>
+                <div style="font-size:0.75em; color:#666; margin-bottom:3px;">Simulates structural costs/premiums</div>
+                <input type="number" id="iulCost" value="20" class="input-iul-cost">
+            </div>
+
+            <button onclick="calculate()">Refresh Data</button>
+        </div>
+
+        <div class="results-section">
+            <div class="summary-cards">
+                <div class="card bg-taxable">
+                    <h3>1. Pay Yearly</h3>
+                    <span class="product-name">Taxable Account<br>Mutual Funds / Stocks</span>
+                    <div class="tax-info">Post-tax Principal<br>Annual Tax on Gains</div>
+                    <div class="value" id="val-taxable">$0</div>
+                </div>
+                <div class="card bg-deferred">
+                    <h3>2. Pay Later</h3>
+                    <span class="product-name">401k / IRA</span>
+                    <div class="tax-info">Pre-tax Investment<br>Taxed on Withdrawal</div>
+                    <div class="value" id="val-deferred">$0</div>
+                </div>
+                <div class="card bg-annuity">
+                    <h3>3. Deferred Growth</h3>
+                    <span class="product-name">Annuity</span>
+                    <div class="tax-info">Post-tax Investment<br>Deferred Tax on Gains</div>
+                    <div class="value" id="val-annuity">$0</div>
+                </div>
+                <div class="card bg-roth">
+                    <h3>4. Pure Tax-Free</h3>
+                    <span class="product-name">Roth IRA</span>
+                    <div class="tax-info">No Structural Costs<br>Completely Tax-Free</div>
+                    <div class="value" id="val-roth">$0</div>
+                </div>
+                <div class="card bg-iul">
+                    <h3>5. Structural Tax-Free</h3>
+                    <span class="product-name">IUL / VUL</span>
+                    <div class="tax-info">Upfront Cost Load<br>Completely Tax-Free</div>
+                    <div class="value" id="val-iul">$0</div>
+                </div>
+                <div class="card bg-ideal">
+                    <h3>6. Ideal State</h3>
+                    <span class="product-name">Ideal State</span>
+                    <div class="tax-info">Tax-Free In<br>Tax-Free Growth</div>
+                    <div class="value" id="val-ideal">$0</div>
+                </div>
+            </div>
+
+            <div class="chart-controls">
+                <label class="control-item"><input type="checkbox" checked onchange="toggleDataset(0)" id="chk-ideal"><span style="background:var(--ideal-color); color:#333">Ideal State</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="toggleDataset(1)" id="chk-roth"><span style="background:var(--roth-color)">Roth IRA</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="toggleDataset(2)" id="chk-iul"><span style="background:var(--iul-color)">IUL/VUL (Cost)</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="toggleDataset(3)" id="chk-annuity"><span style="background:var(--annuity-color)">Annuity</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="toggleDataset(4)" id="chk-deferred"><span style="background:var(--deferred-color)">401k/IRA</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="toggleDataset(5)" id="chk-taxable"><span style="background:var(--taxable-color)">Taxable Account</span></label>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="growthChart"></canvas>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Taxable / MF / Stocks</th>
+                            <th>401k / IRA</th>
+                            <th>Annuity</th>
+                            <th>Roth IRA</th>
+                            <th>IUL / VUL</th>
+                            <th style="background:#fef9e7">Ideal Account</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let myChart = null;
+    const format = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+
+    function calculate() {
+        const initial = parseFloat(document.getElementById('initialInput').value);
+        const rate = parseFloat(document.getElementById('rateOfReturn').value) / 100;
+        const taxCur = parseFloat(document.getElementById('currentTax').value) / 100;
+        const taxFut = parseFloat(document.getElementById('futureTax').value) / 100;
+        const years = parseInt(document.getElementById('years').value);
+        const iulCostPercent = parseFloat(document.getElementById('iulCost').value) / 100;
+
+        let data = { labels: [], taxable: [], deferred: [], annuity: [], roth: [], iul: [], ideal: [] };
+        let tableHTML = "";
+
+        let afterTaxPrincipal = initial * (1 - taxCur);
+
+        let balRoth = afterTaxPrincipal;
+        let balIUL = afterTaxPrincipal * (1 - iulCostPercent); 
+        let balTaxable = afterTaxPrincipal; 
+        let balAnnuity = afterTaxPrincipal;
+        const annuityPrincipal = balAnnuity;
+        
+        let balDeferred = initial; 
+        let balIdeal = initial;   
+
+        for (let i = 1; i <= years; i++) {
+            data.labels.push('Year ' + i);
+
+            balTaxable *= (1 + rate * (1 - taxCur));
+            
+            balDeferred *= (1 + rate);
+            let netDeferred = balDeferred * (1 - taxFut);
+
+            balAnnuity *= (1 + rate);
+            let gainAnnuity = balAnnuity - annuityPrincipal;
+            let netAnnuity = balAnnuity - (gainAnnuity * taxFut);
+
+            balRoth *= (1 + rate);
+            balIUL *= (1 + rate); 
+
+            balIdeal *= (1 + rate);
+
+            data.taxable.push(balTaxable);
+            data.deferred.push(netDeferred);
+            data.annuity.push(netAnnuity);
+            data.roth.push(balRoth);
+            data.iul.push(balIUL);
+            data.ideal.push(balIdeal);
+
+            if (i % 5 === 0 || i === years) { 
+                tableHTML += `<tr>
+                    <td>${i}</td>
+                    <td>${format(balTaxable)}</td>
+                    <td>${format(netDeferred)}</td>
+                    <td>${format(netAnnuity)}</td>
+                    <td>${format(balRoth)}</td>
+                    <td>${format(balIUL)}</td>
+                    <td class="highlight-col">${format(balIdeal)}</td>
+                </tr>`;
+            }
+        }
+
+        document.getElementById('val-taxable').innerText = format(data.taxable[years-1]);
+        document.getElementById('val-deferred').innerText = format(data.deferred[years-1]);
+        document.getElementById('val-annuity').innerText = format(data.annuity[years-1]);
+        document.getElementById('val-roth').innerText = format(data.roth[years-1]);
+        document.getElementById('val-iul').innerText = format(data.iul[years-1]);
+        document.getElementById('val-ideal').innerText = format(data.ideal[years-1]);
+        document.querySelector('#resultTable tbody').innerHTML = tableHTML;
+
+        renderChart(data);
+    }
+
+    function renderChart(d) {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        const showIdeal = document.getElementById('chk-ideal').checked;
+        const showRoth = document.getElementById('chk-roth').checked;
+        const showIUL = document.getElementById('chk-iul').checked;
+        const showAnnuity = document.getElementById('chk-annuity').checked;
+        const showDeferred = document.getElementById('chk-deferred').checked;
+        const showTaxable = document.getElementById('chk-taxable').checked;
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: d.labels,
+                datasets: [
+                    { label: 'Ideal State', data: d.ideal, borderColor: '#f1c40f', borderWidth: 4, pointRadius: 0, borderDash: [5, 5], hidden: !showIdeal },
+                    { label: 'Roth IRA', data: d.roth, borderColor: '#27ae60', borderWidth: 3, pointRadius: 0, hidden: !showRoth },
+                    { label: 'IUL/VUL', data: d.iul, borderColor: '#16a085', borderWidth: 3, pointRadius: 0, hidden: !showIUL },
+                    { label: 'Annuity', data: d.annuity, borderColor: '#2980b9', borderWidth: 2, pointRadius: 0, hidden: !showAnnuity },
+                    { label: '401k/IRA', data: d.deferred, borderColor: '#d35400', borderDash: [2,2], borderWidth: 2, pointRadius: 0, hidden: !showDeferred },
+                    { label: 'Taxable Account', data: d.taxable, borderColor: '#c0392b', borderWidth: 2, pointRadius: 0, hidden: !showTaxable }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { 
+                        padding: 12,
+                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 13, family: 'Segoe UI, monospace' },
+                        itemSort: function(a, b) { return b.parsed.y - a.parsed.y; },
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                let label = context.dataset.label || '';
+                                let maxValue = 0;
+                                const dataIndex = context.dataIndex;
+                                const datasets = context.chart.data.datasets;
+                                
+                                datasets.forEach((dataset, i) => {
+                                    if (context.chart.isDatasetVisible(i)) {
+                                        const val = dataset.data[dataIndex];
+                                        if (val > maxValue) maxValue = val;
+                                    }
+                                });
+
+                                if (value !== null) {
+                                    const formattedValue = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+                                    let percentageStr = "";
+                                    if (maxValue > 0) {
+                                        const pct = (value / maxValue * 100).toFixed(1);
+                                        percentageStr = `  [${pct}%]`;
+                                    }
+                                    return `${label}: ${formattedValue} ${percentageStr}`;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { callback: value => '$' + value.toLocaleString(), font: { size: 10 } } 
+                    },
+                    x: { ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    function toggleDataset(index) {
+        if(myChart) {
+            const isVisible = myChart.isDatasetVisible(index);
+            if (isVisible) {
+                myChart.hide(index);
+            } else {
+                myChart.show(index);
+            }
+        }
+    }
+
+    window.onload = calculate;
+</script>
+</body>
+</html>

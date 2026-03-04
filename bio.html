@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Your Advisor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-container">
+        <div class="logo">
+          <span class="logo-mark">KC</span>
+          <span class="logo-text">Financial Planning</span>
+        </div>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="nav">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="bio.html" class="nav-link active">About</a>
+          <a href="resources.html" class="nav-link">Videos & Resources</a>
+          <a href="calculators.html" class="nav-link">Calculators</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="container bio-grid">
+          <div class="bio-photo">
+            <div class="avatar-placeholder">
+              <span></span>
+            </div>
+          </div>
+          <div class="bio-content">
+            <p class="eyebrow">About Your Advisor</p>
+            <h1>Kevin Chen</h1>
+            <p class="lead">
+              
+            </p>
+            <div class="bio-body">
+              <p>
+                
+              </p>
+              
+            </div>
+
+            <div class="bio-columns">
+              <div>
+                <h2>Areas of focus</h2>
+                <ul class="bullet-list">
+                  <li>Financial education and literacy</li>
+                  <li>Protection strategies (life insurance, income protection)</li>
+                  <li>Retirement planning concepts</li>
+                  <li>Debt management and cash flow</li>
+                  <li>College and future savings</li>
+                </ul>
+              </div>
+              <div>
+                <h2>How we&apos;ll work together</h2>
+                <ol class="numbered-list">
+                  <li>Initial conversation to learn about your goals</li>
+                  <li>Review your current financial snapshot</li>
+                  <li>Walk through concepts and options using simple visuals</li>
+                  <li>Create a roadmap and next steps at your pace</li>
+                  <li>Check in periodically and adjust as life changes</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="bio-cta">
+              <a href="index.html#contact" class="btn primary">Request a conversation</a>
+              <a href="resources.html" class="btn ghost">See videos & tools</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <p class="footer-brand">
+          &copy; <span id="year"></span> Kevin Chen
+        </p>
+        <p class="footer-small">
+          This website is for educational purposes only and does not constitute financial, legal, or tax advice. All strategies and concepts should be reviewed with a licensed professional and your own tax/legal advisors.
+        </p>
+      </div>
+    </footer>
+
+    <script src="assets/site.js"></script>
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
+

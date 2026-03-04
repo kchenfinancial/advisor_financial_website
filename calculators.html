@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financial Calculators</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container nav-container">
+      <div class="logo">
+        <span class="logo-mark">KC</span>
+        <span class="logo-text">Financial Planning</span>
+      </div>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="bio.html" class="nav-link">About</a>
+        <a href="resources.html" class="nav-link">Videos & Resources</a>
+        <a href="calculators.html" class="nav-link active">Calculators</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <header class="section-header">
+          <h1>Financial Calculators</h1>
+          <p>
+            Use these simple, interactive calculators to explore concepts we discuss
+            together. Results are for illustration only and are not guarantees or
+            recommendations.
+          </p>
+        </header>
+
+        <div class="calc-layout">
+          <aside class="calc-list">
+            <h2>Choose a calculator</h2>
+            <div class="field">
+              <label for="calculatorSelect">Calculator</label>
+              <select id="calculatorSelect"></select>
+              <label class="calculatorDescription" id="calculatorDescription"></label>
+            </div>
+          </aside>
+
+        </div>
+
+        <section class="calc-viewer-section">
+          <section class="calc-viewer">
+            <div class="calc-viewer-header">
+              <div id="calculatorTitle" class="calc-viewer-title">
+                Select a calculator to begin
+              </div>
+              <div class="calc-viewer-opener">
+                <a id="calculator-opener">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path
+                      d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                      fill="currentColor" />
+                  </svg>
+                  Open in new tab
+                  <a>
+              </div>
+            </div>
+            <iframe id="calculatorFrame" title="Calculator" class="calc-frame" src=""></iframe>
+          </section>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <p class="footer-brand">
+        &copy; <span id="year"></span> Kevin Chen
+      </p>
+      <p class="footer-small">
+        This website is for educational purposes only and does not constitute financial, legal, or tax advice. All
+        strategies and concepts should be reviewed with a licensed professional and your own tax/legal advisors.
+      </p>
+    </div>
+  </footer>
+
+  <script src="assets/site.js"></script>
+  <script src="assets/calculators.js"></script>
+</body>
+
+</html>

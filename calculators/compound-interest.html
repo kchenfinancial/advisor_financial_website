@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compound Interest Explorer</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 1rem 1.2rem 1.2rem;
+        background: #020617;
+        color: #e5e7eb;
+      }
+
+      h1 {
+        font-size: 1.1rem;
+        margin: 0 0 0.6rem;
+      }
+
+      p {
+        font-size: 0.8rem;
+        margin: 0 0 0.8rem;
+        color: #9ca3af;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.5fr);
+        gap: 0.9rem;
+      }
+
+      .panel {
+        border-radius: 0.8rem;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: radial-gradient(
+            circle at top left,
+            rgba(56, 189, 248, 0.15),
+            transparent
+          ),
+          #020617;
+        padding: 0.7rem 0.8rem;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0.4rem;
+      }
+
+      label {
+        font-size: 0.75rem;
+        margin-bottom: 0.1rem;
+        color: #cbd5f5;
+      }
+
+      input,
+      select {
+        font-size: 0.8rem;
+        border-radius: 0.6rem;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        background: rgba(15, 23, 42, 0.98);
+        color: #e5e7eb;
+        padding: 0.3rem 0.45rem;
+      }
+
+      input:focus,
+      select:focus {
+        outline: 2px solid rgba(96, 165, 250, 0.85);
+        outline-offset: 1px;
+      }
+
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .summary-label {
+        color: #9ca3af;
+      }
+
+      .summary-value {
+        font-weight: 600;
+      }
+
+      .chart {
+        margin-top: 0.3rem;
+        width: 100%;
+        height: 180px;
+      }
+
+      .note {
+        font-size: 0.7rem;
+        color: #6b7280;
+        margin-top: 0.35rem;
+      }
+
+      @media (max-width: 640px) {
+        .grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Compound Interest Explorer</h1>
+    <p>
+      Adjust the values to see how an initial amount, ongoing contributions, time,
+      and a steady rate of return can work together over the long term.
+    </p>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="field">
+          <label for="initial">Initial amount</label>
+          <input id="initial" type="number" value="5000" min="0" step="100" />
+        </div>
+        <div class="field">
+          <label for="contribution">Monthly contribution</label>
+          <input id="contribution" type="number" value="300" min="0" step="25" />
+        </div>
+        <div class="field">
+          <label for="rate">Annual rate of return (assumed)</label>
+          <input id="rate" type="number" value="6" min="0" max="20" step="0.5" />
+        </div>
+        <div class="field">
+          <label for="years">Time horizon (years)</label>
+          <input id="years" type="number" value="30" min="1" max="50" step="1" />
+        </div>
+        <div class="field">
+          <label for="frequency">Contribution frequency</label>
+          <select id="frequency">
+            <option value="12" selected>Monthly</option>
+            <option value="26">Every 2 weeks</option>
+            <option value="52">Weekly</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="summary-row">
+          <span class="summary-label">Total contributed</span>
+          <span class="summary-value" id="summaryContrib">$0</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Growth over time</span>
+          <span class="summary-value" id="summaryGrowth">$0</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Illustrated future value</span>
+          <span class="summary-value" id="summaryFuture">$0</span>
+        </div>
+
+        <canvas id="chart" class="chart" aria-hidden="true"></canvas>
+        <div class="note">
+          For illustration only. Assumes a steady rate of return and does not
+          reflect fees, taxes, or market volatility. Actual results will vary.
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const els = {
+        initial: document.getElementById("initial"),
+        contribution: document.getElementById("contribution"),
+        rate: document.getElementById("rate"),
+        years: document.getElementById("years"),
+        frequency: document.getElementById("frequency"),
+        summaryContrib: document.getElementById("summaryContrib"),
+        summaryGrowth: document.getElementById("summaryGrowth"),
+        summaryFuture: document.getElementById("summaryFuture"),
+        chart: document.getElementById("chart"),
+      };
+
+      const ctx = els.chart.getContext("2d");
+
+      function formatCurrency(value) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0,
+        }).format(value);
+      }
+
+      function calculate() {
+        const initial = Number(els.initial.value) || 0;
+        const contribution = Number(els.contribution.value) || 0;
+        const rate = (Number(els.rate.value) || 0) / 100;
+        const years = Number(els.years.value) || 0;
+        const periodsPerYear = Number(els.frequency.value) || 12;
+
+        const totalPeriods = years * periodsPerYear;
+        const periodRate = rate / periodsPerYear;
+
+        let balance = initial;
+        let contributed = initial;
+        const points = [];
+
+        for (let n = 1; n <= totalPeriods; n++) {
+          balance = balance * (1 + periodRate) + contribution;
+          contributed += contribution;
+
+          if (n % periodsPerYear === 0 || n === totalPeriods) {
+            const year = n / periodsPerYear;
+            points.push({ year, balance, contributed });
+          }
+        }
+
+        const futureValue = points.length ? points[points.length - 1].balance : initial;
+        const growth = futureValue - contributed;
+
+        els.summaryContrib.textContent = formatCurrency(contributed);
+        els.summaryGrowth.textContent = formatCurrency(growth);
+        els.summaryFuture.textContent = formatCurrency(futureValue);
+
+        drawChart(points);
+      }
+
+      function drawChart(points) {
+        const width = els.chart.width;
+        const height = els.chart.height;
+        ctx.clearRect(0, 0, width, height);
+
+        if (!points.length) return;
+
+        const maxValue = Math.max(...points.map((p) => p.balance));
+        const padding = 18;
+
+        function x(i) {
+          if (points.length === 1) return padding;
+          return (
+            padding +
+            (i / (points.length - 1)) * (width - padding * 2)
+          );
+        }
+
+        function y(value) {
+          if (!maxValue) return height - padding;
+          const ratio = value / maxValue;
+          return height - padding - ratio * (height - padding * 2);
+        }
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(55,65,81,1)";
+        ctx.beginPath();
+        ctx.moveTo(padding, height - padding);
+        ctx.lineTo(width - padding, height - padding);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x(0), y(points[0].contributed));
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(x(i), y(points[i].contributed));
+        }
+        const gradientContrib = ctx.createLinearGradient(0, 0, width, 0);
+        gradientContrib.addColorStop(0, "#38bdf8");
+        gradientContrib.addColorStop(1, "#6366f1");
+        ctx.strokeStyle = gradientContrib;
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x(0), y(points[0].balance));
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(x(i), y(points[i].balance));
+        }
+        const gradientBal = ctx.createLinearGradient(0, 0, width, 0);
+        gradientBal.addColorStop(0, "#22c55e");
+        gradientBal.addColorStop(1, "#a3e635");
+        ctx.strokeStyle = gradientBal;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+      }
+
+      ["input", "change"].forEach((evt) => {
+        els.initial.addEventListener(evt, calculate);
+        els.contribution.addEventListener(evt, calculate);
+        els.rate.addEventListener(evt, calculate);
+        els.years.addEventListener(evt, calculate);
+        els.frequency.addEventListener(evt, calculate);
+      });
+
+      function resizeCanvas() {
+        const rect = els.chart.getBoundingClientRect();
+        els.chart.width = rect.width * window.devicePixelRatio;
+        els.chart.height = rect.height * window.devicePixelRatio;
+        ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      }
+
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        calculate();
+      });
+
+      resizeCanvas();
+      calculate();
+    </script>
+  </body>
+</html>
+

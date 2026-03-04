@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&P 500 Index Strategy IUL Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0056b3;      /* IUL Blue */
+            --secondary: #e6a700;    /* S&P Yellow */
+            --success: #1e7e34;      /* Total Green */
+            --bg: #f8f9fa;     
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-sub: #6c757d;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: var(--bg);
+            margin: 0; padding: 20px; color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container { width: 100%; max-width: 1400px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* HEADER */
+        .header-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h1 { margin: 0; font-size: 1.5rem; font-weight: 800; }
+        
+        .lang-switch { display: flex; align-items: center; gap: 10px; background: #e3f2fd; padding: 8px 15px; border-radius: 30px; }
+        .lang-switch label { font-size: 0.85rem; font-weight: 700; color: var(--primary); margin: 0; cursor: pointer; }
+        .lang-switch select { border: none; background: transparent; font-weight: 700; color: var(--primary); cursor: pointer; outline: none; font-family: inherit; }
+
+        /* INPUTS */
+        .control-panel { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef; }
+        .input-grid { display: flex; flex-wrap: wrap; gap: 25px; align-items: center; justify-content: space-between; }
+        
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-sub); margin-bottom: 5px; text-transform: uppercase; }
+        .input-group input { font-size: 1.1rem; font-weight: 600; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; width: 110px; font-family: inherit; }
+        .input-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(0,86,179,0.1); }
+
+        /* SWITCH */
+        .toggle-group { display: flex; flex-direction: column; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--secondary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .toggle-status { font-size: 0.75rem; font-weight: 700; margin-top: 5px; color: #666; }
+
+        /* BUTTON */
+        .btn-calc { background: var(--primary); color: white; border: none; padding: 0 30px; height: 48px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        .btn-calc:hover { background: #004494; transform: translateY(-1px); }
+
+        /* STATS */
+        .stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .stat-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-top: 5px solid #ccc; }
+        .card-iul { border-color: var(--primary); }
+        .card-sp { border-color: var(--secondary); }
+        
+        .card-title { font-size: 0.9rem; font-weight: 700; color: #555; display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .big-num { font-size: 2.5rem; font-weight: 800; color: var(--text-main); line-height: 1.2; margin-bottom: 5px; }
+        .sub-row { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; font-size: 0.85rem; }
+        .val-risk { color: #d63384; font-weight: 700; }
+        .val-asset { color: var(--text-main); font-weight: 700; }
+
+        /* CHART */
+        .chart-section { background: #fff; padding: 20px; border-radius: 12px; height: 500px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        /* TABLE */
+        .table-section { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .table-header { padding: 15px 25px; background: #f8f9fa; font-weight: 700; border-bottom: 1px solid #eee; }
+        .table-scroll { max-height: 400px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { position: sticky; top: 0; background: #fff; padding: 12px 20px; text-align: right; border-bottom: 2px solid #eee; color: #555; }
+        th:first-child { text-align: left; }
+        td { padding: 10px 20px; border-bottom: 1px solid #f8f9fa; text-align: right; }
+        td:first-child { text-align: left; font-weight: 700; }
+        .pos { color: var(--success); font-weight: 600; }
+        .neg { color: #dc3545; font-weight: 600; }
+        .highlight { color: var(--primary); font-weight: 700; background: #f0f7ff; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header-bar">
+        <div>
+            <h1 data-i18n="title">S&P 500 Index Strategy IUL Backtest Calculator</h1>
+            <div style="font-size:0.9rem; color:#666;" data-i18n="subtitle">Historical Performance Analysis</div>
+        </div>
+        <div class="lang-switch">
+            <label>Language:</label>
+            <select id="langSelect" onchange="switchLang(this.value)">
+                <option value="en" selected>English</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <div class="input-grid">
+            <div class="input-group">
+                <label data-i18n="lblInit">Initial Investment ($)</label>
+                <input type="number" id="init" value="100000" step="1000">
+            </div>
+            <div class="input-group">
+                <label data-i18n="lblCap">Cap Rate (%)</label>
+                <input type="number" id="cap" value="12.75" step="0.25">
+            </div>
+            <div class="input-group">
+                <label data-i18n="lblFloor">Floor Rate (%)</label>
+                <input type="number" id="floor" value="0.0" step="0.1">
+            </div>
+            <div class="input-group">
+                <label data-i18n="lblStart">Start Year</label>
+                <input type="number" id="startY" value="2000" min="1950" max="2025">
+            </div>
+            <div class="input-group">
+                <label data-i18n="lblEnd">End Year</label>
+                <input type="number" id="endY" value="2025" min="1950" max="2025">
+            </div>
+
+            <div class="toggle-group">
+                <label class="toggle-label" data-i18n="lblDiv">Include Dividends?</label>
+                <label class="switch">
+                    <input type="checkbox" id="useDividends" onchange="runCalc()">
+                    <span class="slider"></span>
+                </label>
+                <div class="toggle-status" id="divStatus">NO (Price Return)</div>
+            </div>
+
+            <button class="btn-calc" onclick="runCalc()" data-i18n="btnRun">Calculate ➜</button>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card card-iul">
+            <div class="card-title">
+                <span data-i18n="cardIul">IUL Strategy (Your Plan)</span>
+                <span style="color:var(--primary)">●</span>
+            </div>
+            <div class="big-num" id="v-iul-cagr">0.00%</div>
+            <div style="color:#888; font-size:0.8rem; font-weight:600;" data-i18n="lblCagr">Annual Return (CAGR)</div>
+            <div class="sub-row">
+                <div><span data-i18n="lblStd">Risk (Std Dev):</span> <span class="val-risk" id="v-iul-std">0.00%</span></div>
+                <div><span data-i18n="lblFinal">Final Balance:</span> <span class="val-asset" id="v-iul-end">$0</span></div>
+            </div>
+        </div>
+        <div class="stat-card card-sp">
+            <div class="card-title">
+                <span id="lbl-sp-title">S&P 500 Benchmark</span>
+                <span style="color:var(--secondary)">●</span>
+            </div>
+            <div class="big-num" id="v-sp-cagr">0.00%</div>
+            <div style="color:#888; font-size:0.8rem; font-weight:600;" data-i18n="lblCagr">Annual Return (CAGR)</div>
+            <div class="sub-row">
+                <div><span data-i18n="lblStd">Risk (Std Dev):</span> <span class="val-risk" id="v-sp-std">0.00%</span></div>
+                <div><span data-i18n="lblFinal">Final Balance:</span> <span class="val-asset" id="v-sp-end">$0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <canvas id="mainChart"></canvas>
+    </div>
+
+    <div class="table-section">
+        <div class="table-header" data-i18n="tabTitle">📅 Year-by-Year Details</div>
+        <div class="table-scroll">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th data-i18n="thYear">Year</th>
+                        <th data-i18n="thIulRet">IUL Return</th>
+                        <th id="th-sp-return">S&P Return</th>
+                        <th class="highlight" data-i18n="thIulBal">IUL Balance</th>
+                        <th style="color:var(--secondary)" id="th-sp-bal">S&P Balance</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- DICTIONARY ---
+    const i18n = {
+        en: {
+            title: "S&P 500 Index Strategy IUL Backtest Calculator",
+            subtitle: "Historical Performance Analysis",
+            lblInit: "Initial Investment ($)",
+            lblCap: "Cap Rate (%)",
+            lblFloor: "Floor Rate (%)",
+            lblStart: "Start Year",
+            lblEnd: "End Year",
+            lblDiv: "Include Dividends?",
+            btnRun: "Calculate ➜",
+            cardIul: "IUL Strategy (Your Plan)",
+            lblCagr: "Annual Return (CAGR)",
+            lblStd: "Risk (Std Dev):",
+            lblFinal: "Final Balance:",
+            tabTitle: "📅 Year-by-Year Details",
+            thYear: "Year",
+            thIulRet: "IUL Return",
+            thIulBal: "IUL Balance",
+            // Dynamic
+            spTitlePrice: "S&P 500 (Price Index)",
+            spTitleTotal: "S&P 500 (Total Return)",
+            divYes: "YES (Total Return)",
+            divNo: "NO (Price Return)",
+            thSpRetPrice: "S&P Price Ret",
+            thSpRetTotal: "S&P Total Ret",
+            thSpBalPrice: "S&P Price Bal",
+            thSpBalTotal: "S&P Total Bal",
+            chIul: "IUL Strategy",
+            chSpPrice: "S&P 500 Price",
+            chSpTotal: "S&P 500 Total"
+        },
+        cn: {
+            title: "SP 500指数策略IUL历史回测计算器",
+            subtitle: "封顶/保底策略 vs 标普500",
+            lblInit: "初始投资本金 ($)",
+            lblCap: "封顶收益率 Cap (%)",
+            lblFloor: "保底收益率 Floor (%)",
+            lblStart: "开始年份",
+            lblEnd: "结束年份",
+            lblDiv: "包含股息分红?",
+            btnRun: "开始计算 ➜",
+            cardIul: "IUL 策略 (您的方案)",
+            lblCagr: "年化回报率 (CAGR)",
+            lblStd: "风险波动 (标准差):",
+            lblFinal: "期末余额:",
+            tabTitle: "📅 年度详细数据表",
+            thYear: "年份",
+            thIulRet: "IUL 收益率",
+            thIulBal: "IUL 账户余额",
+            // Dynamic
+            spTitlePrice: "标普500 (价格指数)",
+            spTitleTotal: "标普500 (全回报含分红)",
+            divYes: "是 (含分红复利)",
+            divNo: "否 (仅价格指数)",
+            thSpRetPrice: "标普价格涨幅",
+            thSpRetTotal: "标普全回报率",
+            thSpBalPrice: "标普价格余额",
+            thSpBalTotal: "标普全回报余额",
+            chIul: "IUL 策略",
+            chSpPrice: "标普500 (价格)",
+            chSpTotal: "标普500 (全回报)"
+        }
+    };
+
+    let curLang = 'en';
+    let myChart = null;
+    const fmtPct = n => n.toFixed(2) + '%';
+    const fmtMoney = n => '$' + Math.round(n).toLocaleString();
+
+    // DATA (1950-2025)
+    const DB = [
+        {y:1950, p:21.68, t:31.71}, {y:1951, p:16.35, t:24.02}, {y:1952, p:11.78, t:18.37}, {y:1953, p:-6.62, t:-0.99}, {y:1954, p:45.02, t:52.62},
+        {y:1955, p:26.40, t:31.56}, {y:1956, p:2.62, t:6.56}, {y:1957, p:-14.31, t:-10.78}, {y:1958, p:38.06, t:43.36}, {y:1959, p:8.48, t:11.96},
+        {y:1960, p:-2.97, t:0.47}, {y:1961, p:23.13, t:26.89}, {y:1962, p:-11.81, t:-8.73}, {y:1963, p:18.89, t:22.80}, {y:1964, p:12.97, t:16.48},
+        {y:1965, p:9.06, t:12.45}, {y:1966, p:-13.09, t:-10.06}, {y:1967, p:20.09, t:23.98}, {y:1968, p:7.66, t:11.06}, {y:1969, p:-11.36, t:-8.50},
+        {y:1970, p:0.10, t:4.01}, {y:1971, p:10.79, t:14.31}, {y:1972, p:15.63, t:18.98}, {y:1973, p:-17.37, t:-14.66}, {y:1974, p:-29.72, t:-26.47},
+        {y:1975, p:31.55, t:37.20}, {y:1976, p:19.15, t:23.84}, {y:1977, p:-11.50, t:-7.18}, {y:1978, p:1.06, t:6.56}, {y:1979, p:12.31, t:18.44},
+        {y:1980, p:25.77, t:32.42}, {y:1981, p:-9.73, t:-4.91}, {y:1982, p:14.76, t:21.55}, {y:1983, p:17.27, t:22.56}, {y:1984, p:1.40, t:6.27},
+        {y:1985, p:26.33, t:31.73}, {y:1986, p:14.62, t:18.67}, {y:1987, p:2.03, t:5.25}, {y:1988, p:12.40, t:16.61}, {y:1989, p:27.25, t:31.69},
+        {y:1990, p:-6.56, t:-3.10}, {y:1991, p:26.31, t:30.47}, {y:1992, p:4.46, t:7.62}, {y:1993, p:7.06, t:10.08}, {y:1994, p:-1.54, t:1.32},
+        {y:1995, p:34.11, t:37.58}, {y:1996, p:20.26, t:22.96}, {y:1997, p:31.01, t:33.36}, {y:1998, p:26.67, t:28.58}, {y:1999, p:19.53, t:21.04},
+        {y:2000, p:-10.14, t:-9.10}, {y:2001, p:-13.04, t:-11.89}, {y:2002, p:-23.37, t:-22.10}, {y:2003, p:26.38, t:28.68}, {y:2004, p:8.99, t:10.88},
+        {y:2005, p:3.00, t:4.91}, {y:2006, p:13.62, t:15.79}, {y:2007, p:3.53, t:5.49}, {y:2008, p:-38.49, t:-37.00}, {y:2009, p:23.45, t:26.46},
+        {y:2010, p:12.78, t:15.06}, {y:2011, p:0.00, t:2.11}, {y:2012, p:13.41, t:16.00}, {y:2013, p:29.60, t:32.39}, {y:2014, p:11.39, t:13.69},
+        {y:2015, p:-0.73, t:1.38}, {y:2016, p:9.54, t:11.96}, {y:2017, p:19.42, t:21.83}, {y:2018, p:-6.24, t:-4.38}, {y:2019, p:28.88, t:31.49},
+        {y:2020, p:16.26, t:18.40}, {y:2021, p:26.89, t:28.71}, {y:2022, p:-19.44, t:-18.11}, 
+        {y:2023, p:24.23, t:26.29}, {y:2024, p:23.31, t:25.02}, {y:2025, p:16.46, t:17.84}
+    ];
+
+    function switchLang(lang) {
+        curLang = lang;
+        const t = i18n[lang];
+        // Replace static text
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            el.innerHTML = t[el.getAttribute('data-i18n')];
+        });
+        runCalc(); // Re-render dynamic text
+    }
+
+    function runCalc() {
+        const t = i18n[curLang];
+        const init = parseFloat(document.getElementById('init').value);
+        const cap = parseFloat(document.getElementById('cap').value);
+        const floor = parseFloat(document.getElementById('floor').value);
+        const startY = parseInt(document.getElementById('startY').value);
+        const endY = parseInt(document.getElementById('endY').value);
+        const useDiv = document.getElementById('useDividends').checked;
+
+        // Validation
+        if(startY > endY) { alert(curLang=='en'?'Start Year must be before End Year':'开始年份必须早于结束年份'); return; }
+
+        // Filter Data
+        const data = DB.filter(d => d.y >= startY && d.y <= endY);
+
+        // Update Dynamic Labels
+        const lblSpTitle = useDiv ? t.spTitleTotal : t.spTitlePrice;
+        document.getElementById('lbl-sp-title').innerText = lblSpTitle;
+        document.getElementById('divStatus').innerText = useDiv ? t.divYes : t.divNo;
+        document.getElementById('divStatus').style.color = useDiv ? "#28a745" : "#666";
+        
+        document.getElementById('th-sp-return').innerText = useDiv ? t.thSpRetTotal : t.thSpRetPrice;
+        document.getElementById('th-sp-bal').innerText = useDiv ? t.thSpBalTotal : t.thSpBalPrice;
+
+        // Calc
+        let labels = [startY-1];
+        let dIul=[init], dSp=[init];
+        let rIul=[], rSp=[];
+        let cIul=init, cSp=init;
+        let html = '';
+
+        data.forEach(d => {
+            labels.push(d.y);
+            // IUL always based on Price
+            let rateIul = Math.max(floor, Math.min(cap, d.p));
+            // S&P based on toggle
+            let rateSp = useDiv ? d.t : d.p;
+
+            rIul.push(rateIul);
+            rSp.push(rateSp);
+
+            cIul *= (1 + rateIul/100);
+            cSp *= (1 + rateSp/100);
+
+            dIul.push(cIul);
+            dSp.push(cSp);
+
+            html += `<tr>
+                <td>${d.y}</td>
+                <td class="${rateIul>=0?'pos':'neg'}">${fmtPct(rateIul)}</td>
+                <td class="${rateSp>=0?'pos':'neg'}">${fmtPct(rateSp)}</td>
+                <td class="highlight">${fmtMoney(cIul)}</td>
+                <td style="color:var(--secondary); font-weight:600">${fmtMoney(cSp)}</td>
+            </tr>`;
+        });
+
+        drawChart(labels, dIul, dSp, lblSpTitle, t);
+        updateStats(rIul, rSp, cIul, cSp, init, data.length);
+        document.getElementById('tableBody').innerHTML = html;
+    }
+
+    function updateStats(rI, rS, eI, eS, init, n) {
+        const cagr = (e) => n===0?0 : (Math.pow(e/init, 1/n)-1)*100;
+        const std = (arr) => {
+            if(arr.length===0) return 0;
+            let m = arr.reduce((a,b)=>a+b)/arr.length;
+            return Math.sqrt(arr.reduce((a,b)=>a+Math.pow(b-m,2),0)/arr.length);
+        };
+
+        document.getElementById('v-iul-cagr').innerText = fmtPct(cagr(eI));
+        document.getElementById('v-iul-std').innerText = fmtPct(std(rI));
+        document.getElementById('v-iul-end').innerText = fmtMoney(eI);
+
+        document.getElementById('v-sp-cagr').innerText = fmtPct(cagr(eS));
+        document.getElementById('v-sp-std').innerText = fmtPct(std(rS));
+        document.getElementById('v-sp-end').innerText = fmtMoney(eS);
+    }
+
+    function drawChart(lbl, dI, dS, spLabel, t) {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        if(myChart) myChart.destroy();
+
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(0, 86, 179, 0.2)');
+        gradient.addColorStop(1, 'rgba(0, 86, 179, 0)');
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: lbl,
+                datasets: [
+                    {
+                        label: t.chIul,
+                        data: dI,
+                        borderColor: '#0056b3',
+                        backgroundColor: gradient,
+                        borderWidth: 4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.2
+                    },
+                    {
+                        label: spLabel,
+                        data: dS,
+                        borderColor: '#e6a700',
+                        borderWidth: 4,
+                        borderDash: [5,5],
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { boxWidth: 15, font: { size: 14, family: 'Inter' } } },
+                    tooltip: {
+                        mode: 'index', intersect: false, backgroundColor: 'rgba(255,255,255,0.95)',
+                        titleColor: '#333', bodyColor: '#333', borderColor: '#ddd', borderWidth: 1, padding: 10,
+                        callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtMoney(ctx.raw) }
+                    }
+                },
+                scales: {
+                    x: { grid: {display: false}, ticks: { maxTicksLimit: 12 } },
+                    y: {
+                        type: 'logarithmic',
+                        grid: { color: '#f0f0f0' },
+                        ticks: { callback: v => String(v).match(/^[15]0*$/) ? '$'+v.toLocaleString() : '' }
+                    }
+                }
+            }
+        });
+    }
+
+    document.querySelectorAll('input').forEach(el => el.addEventListener('keyup', e => { if(e.key==='Enter') runCalc(); }));
+    
+    // Init
+    switchLang('en'); 
+
+</script>
+</body>
+</html>
