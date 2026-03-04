@@ -6,6 +6,22 @@ const videos = [
     url: "https://drive.google.com/file/d/1Nx0X23YHi-SEP1BOHCrTgN6IgEC4ezsd/preview",
     length: "10 min",
     topic: "Saving & compound interest",
+  },
+  {
+    id: "yuzhouvul1",
+    title: "Example VUL Statement",
+    description: "Sample VUL statement to understand how saving taxes and fees impact your returns over time",
+    url: "https://drive.google.com/file/d/1SSNEL0KFIhL_aYDZIhycyr6DFFHs3QVp/preview",
+    length: "2 min",
+    topic: "Tax Free",
+  },
+  {
+    id: "excelretirementcalculator1",
+    title: "Retirement Calculator in Excel",
+    description: "Step-by-step guide to building a retirement calculator in Excel to project your savings growth and retirement income",
+    url: "https://docs.google.com/spreadsheets/d/1-eDSgS3y3iLCxmdlXf3apmCqjvEGJ-D44k0T1KZVIeY/edit?usp=sharing",
+    length: "2 min",
+    topic: "Retirement",
   }
 ];
 
@@ -46,6 +62,14 @@ function initVideoViews() {
         <div class="carousel-meta">
           <span>${video.topic}</span> &middot; <span>${video.length}</span>
         </div>
+        <a href="${video.url}" target="_blank" rel="noopener" class="carousel-open-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path
+              d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+              fill="currentColor" />
+          </svg>
+          Open
+        </a>
       </div>
     `;
     track.appendChild(slide);
@@ -61,8 +85,18 @@ function initVideoViews() {
   function updateCarousel(index) {
     const clampedIndex = Math.max(0, Math.min(videos.length - 1, index));
     currentIndex = clampedIndex;
-    const offset = clampedIndex * track.clientWidth;
-    track.scrollTo({ left: offset, behavior: "smooth" });
+
+    // Center the active slide within the visible track
+    const slide = track.querySelector(`.carousel-slide[data-index="${clampedIndex}"]`);
+    if (slide) {
+      const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+      const targetScroll = Math.max(0, slideCenter - track.clientWidth / 2);
+      track.scrollTo({ left: targetScroll, behavior: "smooth" });
+    } else {
+      // fallback: scroll by approx slide width
+      const offset = clampedIndex * track.clientWidth;
+      track.scrollTo({ left: offset, behavior: "smooth" });
+    }
 
     dotsContainer.querySelectorAll(".carousel-dot").forEach((dot, idx) => {
       dot.classList.toggle("active", idx === clampedIndex);

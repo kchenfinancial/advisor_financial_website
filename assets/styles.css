@@ -544,7 +544,14 @@ body.nav-open .nav-toggle span:nth-child(3) {
   grid-auto-flow: column;
   grid-auto-columns: calc(100% - 4rem);
   gap: 1rem;
-  overflow: hidden;
+  overflow-x: auto; /* allow manual scroll */
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.carousel-slide {
+  scroll-snap-align: center;
 }
 
 .carousel-slide {
@@ -589,6 +596,23 @@ body.nav-open .nav-toggle span:nth-child(3) {
 .carousel-meta {
   font-size: 0.8rem;
   color: #6b7280;
+}
+
+.carousel-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.carousel-open-btn svg {
+  opacity: 0.95;
 }
 
 .carousel-arrow {
@@ -870,9 +894,19 @@ body.nav-open .nav-toggle span:nth-child(3) {
 
 .gallery-card-link {
   display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.5rem;
-  font-size: 0.8rem;
-  color: #2563eb;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.gallery-card-link svg {
+  opacity: 0.95;
 }
 
 .gallery-pagination {
