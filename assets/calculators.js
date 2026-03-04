@@ -15,7 +15,7 @@ const calculators = [
     id: "retirement_distribution",
     title: "Retirement Distribution",
     file: "retirement_distribution.html",
-    note: "Illustrates longevity of asset distributoon over retirement",
+    note: "Illustrates longevity of asset distribution over retirement",
   },
   {
     id: "tax_impacts_advanced",
