@@ -2,13 +2,13 @@ const calculators = [
   {
     id: "IUL_index",
     title: "IUL Index Performance Calculator",
-    file: "IUL_index.html",
+    file: "iul_index.html",
     note: "Illustrates how Indexed Universal Life (IUL) performs over time.",
   },
   {
     id: "compound",
     title: "Compound Interest Explorer",
-    file: "compound-interest.html",
+    file: "compound_interest.html",
     note: "Illustrates how contributions grow over time at a fixed rate.",
   },
   {
