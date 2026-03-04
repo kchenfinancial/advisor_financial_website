@@ -1,8 +1,8 @@
 const calculators = [
   {
-    id: "IUL_index",
+    id: "iul_index",
     title: "IUL Index Performance Calculator",
-    file: "iul_index.html",
+    file: "iul_index_historical.html",
     note: "Illustrates how Indexed Universal Life (IUL) performs over time.",
   },
   {
@@ -14,7 +14,7 @@ const calculators = [
   {
     id: "retirement_distribution",
     title: "Retirement Distribution",
-    file: "retirement_distribution.html",
+    file: "retirement_distribution_projection.html",
     note: "Illustrates longevity of asset distribution over retirement",
   },
   {
