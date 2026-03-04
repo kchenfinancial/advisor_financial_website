@@ -19,7 +19,7 @@ const videos = [
     id: "excelretirementcalculator1",
     title: "Retirement Calculator in Excel",
     description: "Step-by-step guide to building a retirement calculator in Excel to project your savings growth and retirement income",
-    url: "https://docs.google.com/spreadsheets/d/1-eDSgS3y3iLCxmdlXf3apmCqjvEGJ-D44k0T1KZVIeY/edit?usp=sharing",
+    url: "https://docs.google.com/spreadsheets/d/1-eDSgS3y3iLCxmdlXf3apmCqjvEGJ-D44k0T1KZVIeY/preview",
     length: "2 min",
     topic: "Retirement",
   }
@@ -81,21 +81,25 @@ function initVideoViews() {
   });
 
   let currentIndex = 0;
+  let hasUserInteracted = false;
 
-  function updateCarousel(index) {
+  function updateCarousel(index, skipScroll = false) {
     const clampedIndex = Math.max(0, Math.min(videos.length - 1, index));
     currentIndex = clampedIndex;
 
-    // Center the active slide within the visible track
-    const slide = track.querySelector(`.carousel-slide[data-index="${clampedIndex}"]`);
-    if (slide) {
-      const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
-      const targetScroll = Math.max(0, slideCenter - track.clientWidth / 2);
-      track.scrollTo({ left: targetScroll, behavior: "smooth" });
-    } else {
-      // fallback: scroll by approx slide width
-      const offset = clampedIndex * track.clientWidth;
-      track.scrollTo({ left: offset, behavior: "smooth" });
+    // Only scroll if user has interacted or skipScroll is false
+    if (!skipScroll) {
+      // Center the active slide within the visible track
+      const slide = track.querySelector(`.carousel-slide[data-index="${clampedIndex}"]`);
+      if (slide) {
+        const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+        const targetScroll = Math.max(0, slideCenter - track.clientWidth / 2);
+        track.scrollTo({ left: targetScroll, behavior: "smooth" });
+      } else {
+        // fallback: scroll by approx slide width
+        const offset = clampedIndex * track.clientWidth;
+        track.scrollTo({ left: offset, behavior: "smooth" });
+      }
     }
 
     dotsContainer.querySelectorAll(".carousel-dot").forEach((dot, idx) => {
@@ -106,6 +110,7 @@ function initVideoViews() {
   const arrows = document.querySelectorAll(".carousel-arrow");
   arrows.forEach((btn) => {
     btn.addEventListener("click", () => {
+      hasUserInteracted = true;
       const dir = btn.dataset.direction === "next" ? 1 : -1;
       updateCarousel(currentIndex + dir);
     });
@@ -114,13 +119,15 @@ function initVideoViews() {
   dotsContainer.addEventListener("click", (e) => {
     const target = e.target;
     if (target && target.classList.contains("carousel-dot")) {
+      hasUserInteracted = true;
       const idx = Number(target.dataset.index || "0");
       updateCarousel(idx);
     }
   });
 
   window.addEventListener("resize", () => {
-    updateCarousel(currentIndex);
+    // Skip scroll recalculation on resize unless user has interacted
+    updateCarousel(currentIndex, !hasUserInteracted);
   });
 
   updateCarousel(0);
