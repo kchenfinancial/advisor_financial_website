@@ -1,0 +1,570 @@
+import os
+
+def generate_financial_analysis_tool():
+    """
+    生成带有动态隐藏功能的 WFG 综合税务与产品成本效率分析 HTML 工具
+    """
+    
+    html_content = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WFG 综合税务与产品成本效率分析 (Pro Max v2.0)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #8e44ad; 
+            --taxable-color: #c0392b;
+            --deferred-color: #d35400;
+            --annuity-color: #2980b9;
+            --roth-color: #27ae60;
+            --iul-color: #16a085;
+            --ideal-color: #f1c40f;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', Tahoma, sans-serif;
+            margin: 0; padding: 20px; background-color: #f4f7f6; color: #333;
+        }
+
+        .container {
+            max-width: 1500px; margin: 0 auto; background: white;
+            padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 { text-align: center; color: var(--primary-color); margin-bottom: 5px; }
+        
+        .subtitle {
+            text-align: center; color: #7f8c8d; margin-bottom: 30px;
+            font-size: 0.95em; line-height: 1.6;
+        }
+
+        .grid-layout {
+            display: grid; grid-template-columns: 300px 1fr; gap: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .input-section {
+            background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e9ecef;
+            height: fit-content;
+        }
+
+        .input-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85em; }
+        input {
+            width: 100%; padding: 8px; border: 1px solid #ccd1d1;
+            border-radius: 6px; box-sizing: border-box; font-size: 14px;
+        }
+
+        .input-iul-cost { border-color: var(--iul-color); background-color: #e8f6f3; font-weight: bold; color: var(--iul-color); }
+
+        button {
+            width: 100%; padding: 12px; background-color: var(--accent-color);
+            color: white; border: none; border-radius: 6px; cursor: pointer;
+            font-size: 16px; font-weight: bold; margin-top: 10px; transition: 0.3s;
+        }
+        button:hover { background-color: #732d91; }
+
+        /* Summary Cards 布局调整 */
+        .summary-cards {
+            display: flex; /* 改用 Flex 以便隐藏时自动挤占空间 */
+            flex-wrap: wrap;
+            gap: 8px; 
+            margin-bottom: 20px;
+            justify-content: space-between;
+        }
+
+        .card {
+            flex: 1; /* 让卡片平均分配宽度 */
+            min-width: 140px; /* 防止卡片变得太窄 */
+            padding: 12px 4px; border-radius: 8px; color: white; text-align: center;
+            transition: all 0.3s ease; /* 添加动画效果 */
+        }
+        
+        /* 隐藏元素的类 */
+        .hidden-el {
+            display: none !important;
+        }
+
+        .card h3 { margin: 0 0 4px 0; font-size: 0.75em; opacity: 0.9; }
+        .card .product-name { font-weight: bold; font-size: 0.75em; margin-bottom: 4px; display: block; color: #fff; background: rgba(0,0,0,0.2); padding: 4px 2px; border-radius: 4px; line-height: 1.2; min-height: 28px; display: flex; align-items: center; justify-content: center;}
+        .card .tax-info { font-size: 0.6em; margin-bottom: 6px; height: 28px; line-height: 1.2; opacity: 0.9; }
+        .card .value { font-size: 1em; font-weight: bold; }
+        
+        .bg-taxable { background: var(--taxable-color); }
+        .bg-deferred { background: var(--deferred-color); }
+        .bg-annuity { background: var(--annuity-color); }
+        .bg-roth { background: var(--roth-color); }
+        .bg-iul { background: var(--iul-color); }
+        .bg-ideal { background: var(--ideal-color); color: #333; }
+        .bg-ideal .product-name { color: #fff; background: rgba(0,0,0,0.4); }
+
+        .chart-controls {
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;
+            padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee;
+        }
+        .control-item {
+            display: flex; align-items: center; font-size: 0.85em; font-weight: bold; cursor: pointer;
+            user-select: none;
+        }
+        .control-item input { width: auto; margin-right: 5px; cursor: pointer; }
+        .control-item span { padding: 3px 8px; border-radius: 4px; color: white; opacity: 0.7; transition: 0.2s; font-size: 0.9em;}
+        .control-item input:checked + span { opacity: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: scale(1.02); }
+
+        .chart-container { position: relative; height: 450px; width: 100%; margin-bottom: 20px; }
+
+        .table-wrapper { overflow-x: auto; max-height: 350px; border: 1px solid #eee; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8em; }
+        th, td { padding: 8px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background-color: #f2f4f4; color: var(--primary-color); position: sticky; top: 0; z-index: 10; text-align: center;}
+        td:first-child { text-align: center; font-weight: bold; }
+        .highlight-col { background-color: #fef9e7; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>WFG 综合税务与产品成本效率分析</h1>
+    <div class="subtitle">
+        可视化效能对比：勾选下方选项控制图表、卡片及表格显示，实现聚焦分析
+    </div>
+
+    <div class="grid-layout">
+        <div class="input-section">
+            <div class="input-group">
+                <label>初始投资 (税前 $)</label>
+                <input type="number" id="initialInput" value="10000">
+            </div>
+            <div class="input-group">
+                <label>市场预期回报率 (%)</label>
+                <input type="number" id="rateOfReturn" value="8">
+            </div>
+            <div class="input-group">
+                <label style="color:var(--taxable-color);">当前税率 (%)</label>
+                <input type="number" id="currentTax" value="25">
+            </div>
+            <div class="input-group">
+                <label style="color:var(--deferred-color);">退休预计税率 (%)</label>
+                <input type="number" id="futureTax" value="40">
+            </div>
+            <div class="input-group">
+                <label>投资年限 (Years)</label>
+                <input type="number" id="years" value="30">
+            </div>
+            
+            <hr style="border:0; border-top:1px solid #ddd; margin: 15px 0;">
+            
+            <div class="input-group">
+                <label style="color:var(--iul-color);">IUL/VUL 前期结构成本/保费 (%)</label>
+                <div style="font-size:0.75em; color:#666; margin-bottom:3px;">模拟一次性扣除的 Cost Load</div>
+                <input type="number" id="iulCost" value="20" class="input-iul-cost">
+            </div>
+
+            <button onclick="updateAll()">刷新数据</button>
+        </div>
+
+        <div class="results-section">
+            <div class="summary-cards">
+                <div class="card bg-taxable" id="card-taxable">
+                    <h3>1. 年年交税</h3>
+                    <span class="product-name">Taxable Account<br>Mutual Fund / 股票</span>
+                    <div class="tax-info">本金税后<br>增长年年税</div>
+                    <div class="value" id="val-taxable">$0</div>
+                </div>
+                <div class="card bg-deferred" id="card-deferred">
+                    <h3>2. 以后再交</h3>
+                    <span class="product-name">401k / IRA</span>
+                    <div class="tax-info">税前投入<br>取用全额税</div>
+                    <div class="value" id="val-deferred">$0</div>
+                </div>
+                <div class="card bg-annuity" id="card-annuity">
+                    <h3>3. 增长延税</h3>
+                    <span class="product-name">Annuity</span>
+                    <div class="tax-info">税后投入<br>增长延后税</div>
+                    <div class="value" id="val-annuity">$0</div>
+                </div>
+                <div class="card bg-roth" id="card-roth">
+                    <h3>4. 纯免税</h3>
+                    <span class="product-name">Roth IRA</span>
+                    <div class="tax-info">无结构成本<br>完全免税</div>
+                    <div class="value" id="val-roth">$0</div>
+                </div>
+                <div class="card bg-iul" id="card-iul">
+                    <h3>5. 结构免税</h3>
+                    <span class="product-name">IUL / VUL</span>
+                    <div class="tax-info">扣除前期成本<br>完全免税</div>
+                    <div class="value" id="val-iul">$0</div>
+                </div>
+                <div class="card bg-ideal" id="card-ideal">
+                    <h3>6. 理想状态</h3>
+                    <span class="product-name">Ideal State</span>
+                    <div class="tax-info">投入免税<br>增长免税</div>
+                    <div class="value" id="val-ideal">$0</div>
+                </div>
+            </div>
+
+            <div class="chart-controls">
+                <label class="control-item"><input type="checkbox" checked onchange="updateUI()" id="chk-ideal"><span style="background:var(--ideal-color); color:#333">理想状态</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="updateUI()" id="chk-roth"><span style="background:var(--roth-color)">Roth IRA</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="updateUI()" id="chk-iul"><span style="background:var(--iul-color)">IUL/VUL (Cost)</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="updateUI()" id="chk-annuity"><span style="background:var(--annuity-color)">Annuity</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="updateUI()" id="chk-deferred"><span style="background:var(--deferred-color)">401k/IRA</span></label>
+                <label class="control-item"><input type="checkbox" checked onchange="updateUI()" id="chk-taxable"><span style="background:var(--taxable-color)">Taxable Account</span></label>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="growthChart"></canvas>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="resultTable">
+                    <thead id="tableHead">
+                        </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let myChart = null;
+    const format = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+
+    // --- 核心配置：策略元数据 ---
+    // 这个数组定义了所有策略与页面元素(Checkbox, Card, ID)的绑定关系
+    // 顺序决定了图表和表格的显示顺序
+    const strategies = [
+        { 
+            key: 'taxable', 
+            label: 'Taxable Acct', 
+            chkId: 'chk-taxable', 
+            cardId: 'card-taxable', 
+            valId: 'val-taxable',
+            color: '#c0392b',
+            dash: [],
+            width: 2
+        },
+        { 
+            key: 'deferred', 
+            label: '401k/IRA', 
+            chkId: 'chk-deferred', 
+            cardId: 'card-deferred', 
+            valId: 'val-deferred',
+            color: '#d35400',
+            dash: [2,2],
+            width: 2
+        },
+        { 
+            key: 'annuity', 
+            label: 'Annuity', 
+            chkId: 'chk-annuity', 
+            cardId: 'card-annuity', 
+            valId: 'val-annuity',
+            color: '#2980b9',
+            dash: [],
+            width: 2
+        },
+        { 
+            key: 'roth', 
+            label: 'Roth IRA', 
+            chkId: 'chk-roth', 
+            cardId: 'card-roth', 
+            valId: 'val-roth',
+            color: '#27ae60',
+            dash: [],
+            width: 3
+        },
+        { 
+            key: 'iul', 
+            label: 'IUL/VUL', 
+            chkId: 'chk-iul', 
+            cardId: 'card-iul', 
+            valId: 'val-iul',
+            color: '#16a085',
+            dash: [],
+            width: 3
+        },
+        { 
+            key: 'ideal', 
+            label: '理想账号', 
+            chkId: 'chk-ideal', 
+            cardId: 'card-ideal', 
+            valId: 'val-ideal',
+            color: '#f1c40f',
+            dash: [5,5],
+            width: 4,
+            isHighlight: true // 标记高亮列
+        }
+    ];
+
+    // 全局数据存储，避免重复计算
+    let calculatedData = {
+        labels: [],
+        datasets: {} // 存储各策略的数组数据
+    };
+
+    // 1. 计算逻辑：只负责算数，不负责 UI 显示
+    function calculateData() {
+        const initial = parseFloat(document.getElementById('initialInput').value);
+        const rate = parseFloat(document.getElementById('rateOfReturn').value) / 100;
+        const taxCur = parseFloat(document.getElementById('currentTax').value) / 100;
+        const taxFut = parseFloat(document.getElementById('futureTax').value) / 100;
+        const years = parseInt(document.getElementById('years').value);
+        const iulCostPercent = parseFloat(document.getElementById('iulCost').value) / 100;
+
+        calculatedData.labels = [];
+        
+        // 初始化各个策略的数组
+        strategies.forEach(s => calculatedData.datasets[s.key] = []);
+
+        // 初始值设定
+        let afterTaxPrincipal = initial * (1 - taxCur);
+        
+        let balTaxable = afterTaxPrincipal;
+        let balDeferred = initial; 
+        let balAnnuity = afterTaxPrincipal;
+        const annuityPrincipal = balAnnuity;
+        let balRoth = afterTaxPrincipal;
+        let balIUL = afterTaxPrincipal * (1 - iulCostPercent); 
+        let balIdeal = initial; 
+
+        for (let i = 1; i <= years; i++) {
+            calculatedData.labels.push('第' + i + '年');
+
+            // 1. Taxable
+            balTaxable *= (1 + rate * (1 - taxCur));
+            calculatedData.datasets['taxable'].push(balTaxable);
+
+            // 2. Deferred (401k)
+            balDeferred *= (1 + rate);
+            let netDeferred = balDeferred * (1 - taxFut);
+            calculatedData.datasets['deferred'].push(netDeferred);
+
+            // 3. Annuity
+            balAnnuity *= (1 + rate);
+            let gainAnnuity = balAnnuity - annuityPrincipal;
+            let netAnnuity = balAnnuity - (gainAnnuity * taxFut);
+            calculatedData.datasets['annuity'].push(netAnnuity);
+
+            // 4. Roth
+            balRoth *= (1 + rate);
+            calculatedData.datasets['roth'].push(balRoth);
+
+            // 5. IUL
+            balIUL *= (1 + rate);
+            calculatedData.datasets['iul'].push(balIUL);
+
+            // 6. Ideal
+            balIdeal *= (1 + rate);
+            calculatedData.datasets['ideal'].push(balIdeal);
+        }
+    }
+
+    // 2. UI 更新逻辑：负责控制 Card, Table, Chart 的显示
+    function updateUI() {
+        // 获取所有 Checkbox 的状态
+        const activeStrategies = strategies.map(s => {
+            return {
+                ...s,
+                active: document.getElementById(s.chkId).checked
+            };
+        });
+
+        // A. 更新 Summary Cards (Box)
+        activeStrategies.forEach(s => {
+            const card = document.getElementById(s.cardId);
+            const valEl = document.getElementById(s.valId);
+            
+            // 获取最终年份的数据
+            const finalVal = calculatedData.datasets[s.key][calculatedData.datasets[s.key].length - 1];
+            valEl.innerText = format(finalVal);
+
+            // 显示/隐藏控制
+            if (s.active) {
+                card.classList.remove('hidden-el');
+            } else {
+                card.classList.add('hidden-el');
+            }
+        });
+
+        // B. 更新表格 (Table)
+        const thead = document.getElementById('tableHead');
+        const tbody = document.getElementById('tableBody');
+        
+        // 生成表头
+        let headHTML = '<tr><th>年份</th>';
+        activeStrategies.forEach(s => {
+            if(s.active) {
+                headHTML += `<th style="${s.isHighlight ? 'background:#fef9e7' : ''}">${s.label}</th>`;
+            }
+        });
+        headHTML += '</tr>';
+        thead.innerHTML = headHTML;
+
+        // 生成表格内容
+        let bodyHTML = "";
+        const years = calculatedData.labels.length;
+        
+        for (let i = 0; i < years; i++) {
+            // 每5年或最后一年显示一行
+            if ((i + 1) % 5 === 0 || i === years - 1) {
+                bodyHTML += `<tr><td>${i + 1}</td>`;
+                activeStrategies.forEach(s => {
+                    if (s.active) {
+                        const val = calculatedData.datasets[s.key][i];
+                        bodyHTML += `<td class="${s.isHighlight ? 'highlight-col' : ''}">${format(val)}</td>`;
+                    }
+                });
+                bodyHTML += `</tr>`;
+            }
+        }
+        tbody.innerHTML = bodyHTML;
+
+        // C. 更新图表 (Chart)
+        renderChart(activeStrategies);
+    }
+
+    // 主入口：重新计算并更新 UI
+    function updateAll() {
+        calculateData();
+        updateUI();
+    }
+
+    function renderChart(activeStrategies) {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        // 过滤出需要显示的 Dataset
+        // 注意：Chart.js 的 dataset 顺序可以和 strategies 数组一致
+        // 但为了视觉效果，通常 Ideal 在最上面(数组最后)，这里我们按 strategies 顺序添加
+        // 但只添加 active = true 的
+        
+        let chartDatasets = [];
+        
+        // 倒序遍历，或者正序遍历都可以。这里正序。
+        // 为了让"理想状态"显示在图例最前面或最后面，可以调整数组顺序，
+        // 但这里我们根据 activeStrategies 动态生成
+        
+        activeStrategies.forEach(s => {
+            if (s.active) {
+                chartDatasets.push({
+                    label: s.label,
+                    data: calculatedData.datasets[s.key],
+                    borderColor: s.color,
+                    borderWidth: s.width,
+                    borderDash: s.dash,
+                    pointRadius: 0,
+                    // 以前是 hidden: !active，现在如果 unchecked 根本不加入 dataset
+                    // 这样图表会根据剩余数据自动缩放，更清晰
+                });
+            }
+        });
+        
+        // 如果没有选中的，给个空数据防止报错
+        if (chartDatasets.length === 0) chartDatasets = [{label: '无数据', data: []}];
+
+        // 注意：为了让 Ideal 的虚线覆盖在实线上，建议改变 dataset 的绘制顺序
+        // 这里可以使用 reverse() 让数组后面的元素（如 Ideal）最后绘制（显示在最上层）
+        // 但是 strategies 数组里 Ideal 已经在最后了，所以不需要 reverse。
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: calculatedData.labels,
+                datasets: chartDatasets
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false }, // 我们使用自定义的 checkbox 控制
+                    tooltip: { 
+                        padding: 12,
+                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 13, family: 'Consolas, monospace' },
+                        itemSort: function(a, b) { return b.parsed.y - a.parsed.y; },
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                let label = context.dataset.label || '';
+                                
+                                // 寻找当前年份的最大值，用于计算效率百分比
+                                let maxValue = 0;
+                                context.chart.data.datasets.forEach(ds => {
+                                    const val = ds.data[context.dataIndex];
+                                    if (val > maxValue) maxValue = val;
+                                });
+
+                                if (value !== null) {
+                                    const formattedValue = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+                                    let percentageStr = "";
+                                    if (maxValue > 0) {
+                                        const pct = (value / maxValue * 100).toFixed(1);
+                                        percentageStr = `  [${pct}%]`;
+                                    }
+                                    return `${label}: ${formattedValue} ${percentageStr}`;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { callback: value => '$' + value.toLocaleString(), font: { size: 10 } } 
+                    },
+                    x: { ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    window.onload = updateAll;
+</script>
+</body>
+</html>
+"""
+    
+    filename = "financial_analysis_tool_v2.html"
+    with open(filename, "w", encoding='utf-8') as f:
+        f.write(html_content)
+    
+    print(f"成功生成文件: {filename}")
+    print("功能更新说明：")
+    print("1. 当您在下方 Chart Controls 取消勾选某个策略时，对应的 Summary Card (Box) 现在会完全消失（display: none）。")
+    print("2. 对应的表格列也会被移除，使界面更加简洁。")
+    print("3. 代码逻辑已优化，使用配置数组统一管理 UI 和数据。")
+
+# 执行生成函数
+if __name__ == "__main__":
+    try:
+        generate_financial_analysis_tool()
+    except Exception as e:
+        print(f"发生错误: {e}")
+"""
+
+    print("Python 代码已准备完毕，请查看代码块。")
+
+# ----------------------------------------------------------------------
+# 潜在错误提醒 (Potential Pitfalls):
+# 1. Chart.js 缓存问题: 我们在代码中使用了 `if (myChart) myChart.destroy();` 
+#    这是必须的，否则旧的 Canvas 实例会残留，导致鼠标悬停时数据闪烁或显示旧数据。
+# 2. 数组越界: 如果 `strategies` 数组的配置与 `calculatedData` 的键不匹配，
+#    或者 Checkbox 的 ID 写错了，JavaScript 会抛出 "Cannot read property of undefined"。
+#    目前的 Python 代码已经硬编码匹配了所有 ID，应该没问题。
+# 3. DOM 元素加载: 脚本放在 `</body>` 之前且使用了 `window.onload`，
+#    确保了所有 HTML 元素（包括 Canvas）在 JS 执行前已加载完毕。
+# ----------------------------------------------------------------------
+
+if __name__ == '__main__':
+    generate_financial_analysis_tool()

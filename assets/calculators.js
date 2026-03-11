@@ -22,6 +22,18 @@ const calculators = [
     title: "Tax Impacts",
     file: "tax_impacts_advanced.html",
     note: "Illustrates taxes impact your growth potential",
+  },
+  {
+    id: "why65",
+    title: "Why 65%",
+    file: "why_65.html",
+    note: "Why 65%",
+  },
+  {
+    id: "Tax_Impacts_Advanced_Chinese",
+    title: "Tax Impacts Advanced Chinese",
+    file: "Tax_Impacts_Advanced_Chinese.html",
+    note: "",
   }
 ];
 
